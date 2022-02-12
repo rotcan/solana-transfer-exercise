@@ -74,7 +74,7 @@ export const createAccountFromProgram = async (connection: Connection, programId
     );
 
     let accountInfo = await connection.getAccountInfo(profileAccountPubKey);
-
+    console.log(profileAccountPubKey);
     if (accountInfo === null) {
         //console.log(aliceKeyPair.publicKey);
         //let createTx = create(ProgramId, aliceKeyPair, profileAccountPubKey, 1 + 32, await connection.getMinimumBalanceForRentExemption(1 + 32));

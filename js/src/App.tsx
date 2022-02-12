@@ -6,8 +6,9 @@ import './App.css';
 import { PhantomProvider } from './components/solana/phantom';
 import { createAccountFromProgram, getAccountFromProgram, getUserKeyPair, TransactionResponseEnum, Users } from './components/solana/accounts';
 import UserView from './components/solana/main/UserView';
-import { blockTransaction, getAccountBalance, transferSol } from './components/solana/transactions';
+import { blockTransaction, getAccountBalance, getTransactions, TransactionWithSignature, transferSol } from './components/solana/transactions';
 import { programId } from './components/solana/program';
+import TransactionsView from './components/solana/main/WalletTransactions';
 
 
 
@@ -24,7 +25,8 @@ function App() {
   );
   const [blockPubkey, setBlockPubkey] = useState<any | undefined>(null);
   const [blockProgram, setBlockProgram] = useState<any | undefined>(null);
-
+  const [transactions, setTransactions] =
+    useState<Array<TransactionWithSignature>>();
 
 
   const getProvider = (): PhantomProvider | undefined => {
@@ -36,9 +38,16 @@ function App() {
   };
   const cluster = "http://localhost:8899";
   const connection = new Connection(
-    cluster, "singleGossip"
+    cluster, "confirmed"
   );
 
+  const loadTransactions = async () => {
+    var provider = await getProvider();
+    await getTransactions(connection, provider!.publicKey!).then((trans) => {
+      console.log(trans);
+      setTransactions(trans);
+    });
+  }
   async function airdropSOL() {
     var provider = await getProvider();
     console.log("Public key of the emitter: ", provider!.publicKey!.toBase58());
@@ -60,6 +69,7 @@ function App() {
   }
 
   const createBlockAccount = async () => {
+    console.log(blockProgram);
     if (blockProgram == null) {
       await createAccountFromProgram(connection, programId, getUserKeyPair(Users.Admin));
       await getBlockedAccount();
@@ -107,6 +117,7 @@ function App() {
     const response: TransactionResponseEnum = await transferSol(connection, wallet!, to, parseFloat(amount) * LAMPORTS_PER_SOL);
     await getUserBalance();
     processResponse(response);
+    await loadTransactions();
   }
 
   const blockAccountByAdmin = async (pubkey: PublicKey) => {
@@ -155,6 +166,7 @@ function App() {
     else setProvider(undefined);
     walletKey && getUserBalance();
     getBlockedAccount();
+    walletKey && loadTransactions();
   }, [walletKey]);
 
   return (
@@ -208,12 +220,16 @@ function App() {
           &&
           (
             <>
+
               <UserView connection={connection} userType={Users.Admin} transferSOL={transferSOLToOtherAccounts} airdrop={airdropSOL}
                 blockAccountByAdmin={blockAccountByAdmin} blockPubkey={blockPubkey} createBlockAccount={createBlockAccount} blockProgram={blockProgram}></UserView>
               <UserView connection={connection} userType={Users.User1} transferSOL={transferSOLToOtherAccounts} airdrop={airdropSOL} blockAccountByAdmin={blockAccountByAdmin} blockPubkey={blockPubkey} createBlockAccount={createBlockAccount} blockProgram={blockProgram}></UserView>
               <UserView connection={connection} userType={Users.User2} transferSOL={transferSOLToOtherAccounts} airdrop={airdropSOL} blockAccountByAdmin={blockAccountByAdmin} blockPubkey={blockPubkey} createBlockAccount={createBlockAccount} blockProgram={blockProgram}></UserView>
               <UserView connection={connection} userType={Users.User3} transferSOL={transferSOLToOtherAccounts} airdrop={airdropSOL} blockAccountByAdmin={blockAccountByAdmin} blockPubkey={blockPubkey} createBlockAccount={createBlockAccount} blockProgram={blockProgram}></UserView>
-
+              <div className="app-body-mid">
+                <h4>Account Transactions</h4>
+                <TransactionsView transactions={transactions} />
+              </div>
             </>
           )
         }

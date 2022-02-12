@@ -87,3 +87,15 @@ button{
 a {
   color: white;
 } 
+
+
+.trans-item {
+  border: 1px solid gray;
+  border-radius: 0.4rem;
+  padding: 0.5rem;
+  margin-bottom: 0.5em;
+}
+
+.trans-meta {
+  list-style-type: none;
+}

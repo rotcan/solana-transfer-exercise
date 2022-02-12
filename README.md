@@ -12,8 +12,11 @@ cargo build-bpf
 //to get the same program id everytime on deploy use program-id and mention keypair 
 solana program deploy target/deploy/program.so --program-id=program-keypair.json --max-len=200000 
 
+Instructions:
+First airdrop some amount to wallet account
+For admin to create block account, some sol has to transferred from wallet acccount
+
 Few limitations:
-The admin has to create an account in program before transfer is done to other accounts.
 One account can be blocked at a time.
 To unblock an account, another account needs to be blocked.
 

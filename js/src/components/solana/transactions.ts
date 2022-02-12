@@ -1,6 +1,6 @@
 //empty
 
-import { Connection, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction, TransactionError, TransactionInstruction } from "@solana/web3.js";
+import { ConfirmedTransaction, Connection, PublicKey, sendAndConfirmTransaction, SystemProgram, Transaction, TransactionError, TransactionInstruction, TransactionResponse } from "@solana/web3.js";
 import BN from "bn.js";
 import { getAccountFromProgram, getAdminAccountPublicKey, getUserKeyPair, TransactionResponseEnum, Users } from "./accounts";
 import { PhantomProvider } from "./phantom";
@@ -103,7 +103,7 @@ export const transferSol = async (connection: Connection, from: PhantomProvider,
             console.log(response.value);
             return TransactionResponseEnum.Success;
         } catch (err: any) {
-
+            console.log(err);
             if (String(err).indexOf("custom program error: 0x1") > -1)
                 return TransactionResponseEnum.TransferToBlockedAccount;
         }
@@ -140,3 +140,39 @@ export const blockTransaction = async (connection: Connection, pubkey: PublicKey
     }
     return TransactionResponseEnum.Success;
 }
+
+
+
+export class TransactionWithSignature {
+    constructor(
+        public signature: string,
+        public confirmedTransaction: TransactionResponse
+    ) { }
+}
+
+export async function getTransactions(
+    connection: Connection,
+    address: PublicKey
+): Promise<Array<TransactionWithSignature>> {
+    const transSignatures = await connection.getConfirmedSignaturesForAddress2(
+        address
+    );
+    console.log("transSignatures");
+    console.log(transSignatures);
+    const transactions = new Array<TransactionWithSignature>();
+    for (let i = 0; i < transSignatures.length; i++) {
+        const signature = transSignatures[i].signature;
+        const confirmedTransaction = await connection.getTransaction(
+            signature,
+        );
+        if (confirmedTransaction) {
+            const transWithSignature = new TransactionWithSignature(
+                signature,
+                confirmedTransaction
+            );
+            transactions.push(transWithSignature);
+        }
+    }
+    return transactions;
+}
+

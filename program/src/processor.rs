@@ -49,16 +49,16 @@ impl Processor {
         //         counter.serialize(&mut *counter_ai.data.borrow_mut())?;
         //     }
         // }
+        let xs: [u8; 32] = [
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0,
+        ];
         match instruction {
             TransferInstruction::Block { account_key } => {
                 //block user
                 //check if user is admin then add to block
                 let accounts_iter = &mut accounts.iter();
                 let admin_ai = next_account_info(accounts_iter)?;
-                let xs: [u8; 32] = [
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0,
-                ];
 
                 let mut block_account = match BlockAccount::try_from_slice(&admin_ai.data.borrow())
                 {
@@ -111,7 +111,10 @@ impl Processor {
                 let block_account = match BlockAccount::try_from_slice(&block_ai.data.borrow()) {
                     Ok(data) => data,
                     Err(_) => {
-                        panic!("Block account should be a default pubkey or account pubkey");
+                        //panic!("Block account should be a default pubkey or account pubkey");
+                        BlockAccount {
+                            account_key: Pubkey::new(&xs),
+                        }
                     }
                 };
 
